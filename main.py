@@ -1,3 +1,4 @@
+from email import message
 from flask import Flask, request
 from flask_restful import Api, Resource, abort, reqparse
 
@@ -20,17 +21,28 @@ restaurants = {}
 
 def abort_if_restaurant_id_not_exist(restaurant_id):
     if restaurant_id not in restaurants:
-        abort("restaurant_id is not valid. . .")
+        abort(404, message="restaurant_id is not valid. . .")
 
+def abort_if_restaurant_id_exist(restaurant_id):
+    if restaurant_id in restaurants:
+        abort(409, message="Restaurant already exists with that ID . . . ")
 
 class Travel(Resource):
     def get(self, restaurant_id):
+        abort_if_restaurant_id_not_exist(restaurant_id)
         return restaurants[restaurant_id]
 
     def put(self, restaurant_id):
+        abort_if_restaurant_id_exist(restaurant_id)
         args = location_put_args.parse_args()
         restaurants[restaurant_id] = args
         return restaurants[restaurant_id], 201
+
+    def delete(self, restaurant_id):
+        abort_if_restaurant_id_not_exist(restaurant_id)
+        del restaurants[restaurant_id]
+        return '', 204
+
 
 
 api.add_resource(Travel, "/travel/<int:restaurant_id>")
